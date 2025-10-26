@@ -73,7 +73,8 @@ internal struct TdtDecoder {
         decoderState: inout TdtDecoderState,
         startFrameOffset: Int = 0,
         lastProcessedFrame: Int = 0,
-        isLastChunk: Bool = false
+        isLastChunk: Bool = false,
+        logitsCollector: inout [MLMultiArray]? = nil
     ) async throws -> (tokens: [Int], timestamps: [Int]) {
         // Early exit for very short audio (< 160ms)
         guard encoderSequenceLength > 1 else {
@@ -187,6 +188,7 @@ internal struct TdtDecoder {
                 decoderOutput: decoderResult.output,
                 model: jointModel
             )
+            logitsCollector?.append(logits)
 
             // Split joint output into token logits (8193 dims) and duration logits (5 dims)
             let (tokenLogits, durationLogits) = try splitLogits(
@@ -250,6 +252,7 @@ internal struct TdtDecoder {
                     decoderOutput: decoderResult.output,  // Same decoder output (by design)
                     model: jointModel
                 )
+                logitsCollector?.append(innerLogits)
 
                 let (innerTokenLogits, innerDurationLogits) = try splitLogits(
                     innerLogits, durationElements: config.tdtConfig.durationBins.count)

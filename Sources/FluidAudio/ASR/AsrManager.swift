@@ -277,7 +277,9 @@ public final class AsrManager {
         isLastChunk: Bool = false
     ) async throws -> (tokens: [Int], timestamps: [Int]) {
         let decoder = TdtDecoder(config: config)
-        return try await decoder.decodeWithTimings(
+        var logits: [MLMultiArray]? = config.tdtConfig.beamWidth > 1 ? [] : nil
+        let initialState = try TdtDecoderState(from: decoderState)
+        let result = try await decoder.decodeWithTimings(
             encoderOutput: encoderOutput,
             encoderSequenceLength: encoderSequenceLength,
             decoderModel: decoderModel!,
@@ -285,8 +287,23 @@ public final class AsrManager {
             decoderState: &decoderState,
             startFrameOffset: startFrameOffset,
             lastProcessedFrame: lastProcessedFrame,
-            isLastChunk: isLastChunk
+            isLastChunk: isLastChunk,
+            logitsCollector: &logits
         )
+
+        if let beamLogits = logits, config.tdtConfig.beamWidth > 1 {
+            let beamDecoder = BeamSearchTDTDecoder(
+                config: config,
+                beamWidth: config.tdtConfig.beamWidth
+            )
+            let best = try beamDecoder.beamSearchDecoding(
+                jointLogits: beamLogits,
+                initialState: initialState
+            )
+            return (best.ySequence, best.timestamps)
+        }
+
+        return result
     }
 
     public func transcribe(_ audioSamples: [Float]) async throws -> ASRResult {

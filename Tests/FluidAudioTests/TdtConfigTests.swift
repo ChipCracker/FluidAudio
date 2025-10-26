@@ -15,6 +15,7 @@ final class TdtConfigTests: XCTestCase {
         XCTAssertEqual(config.maxSymbolsPerStep, 10, "Default max symbols per step should be 10")
         XCTAssertEqual(config.durationBins, [0, 1, 2, 3, 4], "Default duration bins should be [0, 1, 2, 3, 4]")
         XCTAssertEqual(config.blankId, 8192, "Default blank ID for v3 model should be 8192")
+        XCTAssertEqual(config.beamWidth, 1, "Default beam width should be 1")
     }
 
     func testDefaultConfigurationImmutability() {
@@ -26,6 +27,7 @@ final class TdtConfigTests: XCTestCase {
         XCTAssertEqual(config1.maxSymbolsPerStep, config2.maxSymbolsPerStep)
         XCTAssertEqual(config1.durationBins, config2.durationBins)
         XCTAssertEqual(config1.blankId, config2.blankId)
+        XCTAssertEqual(config1.beamWidth, config2.beamWidth)
     }
 
     // MARK: - Custom Configuration Tests
@@ -35,13 +37,15 @@ final class TdtConfigTests: XCTestCase {
             includeTokenDuration: false,
             maxSymbolsPerStep: 5,
             durationBins: [0, 2, 4],
-            blankId: 4096
+            blankId: 4096,
+            beamWidth: 3
         )
 
         XCTAssertFalse(customConfig.includeTokenDuration, "Custom config should not include token duration")
         XCTAssertEqual(customConfig.maxSymbolsPerStep, 5, "Custom max symbols per step should be 5")
         XCTAssertEqual(customConfig.durationBins, [0, 2, 4], "Custom duration bins should match")
         XCTAssertEqual(customConfig.blankId, 4096, "Custom blank ID should be 4096")
+        XCTAssertEqual(customConfig.beamWidth, 3, "Custom beam width should be 3")
     }
 
     func testPartialCustomConfiguration() {
@@ -52,6 +56,7 @@ final class TdtConfigTests: XCTestCase {
         XCTAssertEqual(config.maxSymbolsPerStep, 15, "Should use custom maxSymbolsPerStep")
         XCTAssertEqual(config.durationBins, [0, 1, 2, 3, 4], "Should use default duration bins")
         XCTAssertEqual(config.blankId, 8192, "Should use default blank ID")
+        XCTAssertEqual(config.beamWidth, 1, "Should use default beam width")
     }
 
     // MARK: - Edge Cases
@@ -103,14 +108,16 @@ final class TdtConfigTests: XCTestCase {
             includeTokenDuration: true,
             maxSymbolsPerStep: 8,
             durationBins: [0, 1, 2],
-            blankId: 512
+            blankId: 512,
+            beamWidth: 2
         )
 
         let config2 = TdtConfig(
             includeTokenDuration: true,
             maxSymbolsPerStep: 8,
             durationBins: [0, 1, 2],
-            blankId: 512
+            blankId: 512,
+            beamWidth: 2
         )
 
         // Since TdtConfig doesn't implement Equatable, we test field-by-field
@@ -118,6 +125,7 @@ final class TdtConfigTests: XCTestCase {
         XCTAssertEqual(config1.maxSymbolsPerStep, config2.maxSymbolsPerStep)
         XCTAssertEqual(config1.durationBins, config2.durationBins)
         XCTAssertEqual(config1.blankId, config2.blankId)
+        XCTAssertEqual(config1.beamWidth, config2.beamWidth)
     }
 
     func testConfigurationInequality() {
